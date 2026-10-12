@@ -30,8 +30,10 @@ test('renders every connected station with its own image and totals', () => {
   assert.match(markup, /吴川站/)
   assert.match(markup, /博罗站/)
   assert.match(markup, /马踏站/)
+  assert.match(markup, /白云站/)
   assert.match(markup, /boluo-station\.png/)
   assert.match(markup, /mata-station\.png/)
+  assert.match(markup, /baiyun-station\.png/)
   assert.match(markup, />140<small>㎡/)
   assert.match(markup, />234<small>KW/)
   assert.match(markup, />20<small>㎡/)
@@ -53,14 +55,14 @@ test('renders the connected station count from AppShell props', () => {
     ),
   )
 
-  assert.match(markup, /03 \/ 03/)
+  assert.match(markup, /04 \/ 04/)
 })
 
-test('describes the login experience as a three-station network', () => {
+test('describes the login experience as a four-station network', () => {
   const markup = renderToStaticMarkup(
     React.createElement(LoginPage, { stationCount: stationDatasets.length, onLogin: () => {} }),
   )
 
-  assert.match(markup, /03 STATIONS \/ 1F/)
+  assert.match(markup, /04 STATIONS \/ 1F/)
   assert.doesNotMatch(markup, /WUCHUAN \/ 1F/)
 })

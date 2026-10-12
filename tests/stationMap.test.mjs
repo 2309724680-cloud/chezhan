@@ -8,8 +8,10 @@ let server
 let StationMap
 let ShopInfoDrawer
 let ShopDetail
+let wuchuan
 let boluo
 let mata
+let baiyun
 
 before(async () => {
   server = await createServer({ server: { middlewareMode: true }, appType: 'custom' })
@@ -17,8 +19,10 @@ before(async () => {
   ;({ ShopInfoDrawer } = await server.ssrLoadModule('/src/components/ShopInfoDrawer.tsx'))
   ;({ ShopDetail } = await server.ssrLoadModule('/src/components/ShopDetail.tsx'))
   const { stationDatasetById } = await server.ssrLoadModule('/src/data/mockData.ts')
+  wuchuan = stationDatasetById('wuchuan-station')
   boluo = stationDatasetById('boluo-station')
   mata = stationDatasetById('mata-station')
+  baiyun = stationDatasetById('baiyun-station')
 })
 
 after(async () => {
@@ -111,4 +115,58 @@ test('renders the Zhonghuilitong storefront in Mata 1F01 details', () => {
   assert.match(markup, /中汇利通便利店门头/)
   assert.match(markup, /商业位于老站房/)
   assert.match(markup, /class="detail-cover detail-cover--photo detail-cover--fitted" style="aspect-ratio:947 \/ 745"/)
+})
+
+test('renders Baiyun as a fifth-floor map with operating and vacant states', () => {
+  const markup = renderToStaticMarkup(
+    React.createElement(StationMap, {
+      station: baiyun.station,
+      floor: baiyun.floor,
+      shops: baiyun.shops,
+      totalArea: baiyun.totalArea,
+      totalPower: baiyun.totalPower,
+      supportingFacilities: baiyun.supportingFacilities,
+      onBack: () => {},
+      onViewDetails: () => {},
+    }),
+  )
+
+  assert.match(markup, /GUANGZHOU BAIYUN STATION \/ DIGITAL FLOOR PLAN/)
+  assert.match(markup, /<button class="is-active">5F<\/button>/)
+  assert.match(markup, /<h2>五层商业空间<\/h2>/)
+  assert.match(markup, /营业店铺/)
+  assert.match(markup, /空店铺/)
+  assert.equal((markup.match(/shop-hotspot--operating/g) ?? []).length, 12)
+  assert.equal((markup.match(/shop-hotspot--vacant/g) ?? []).length, 8)
+  assert.equal((markup.match(/class="hotspot-code"/g) ?? []).length, 20)
+  assert.doesNotMatch(markup, /class="hotspot-pin"/)
+  assert.doesNotMatch(markup, /class="hotspot-border"/)
+  assert.match(markup, /aspect-ratio:1280 \/ 1857/)
+})
+
+test('renders visible operating and vacant overlays for every existing station', () => {
+  const expectedStates = [
+    { dataset: wuchuan, operating: 1, vacant: 2, codes: 3 },
+    { dataset: boluo, operating: 1, vacant: 2, codes: 3 },
+    { dataset: mata, operating: 1, vacant: 0, codes: 1 },
+  ]
+
+  for (const { dataset, operating, vacant, codes } of expectedStates) {
+    const markup = renderToStaticMarkup(
+      React.createElement(StationMap, {
+        station: dataset.station,
+        floor: dataset.floor,
+        shops: dataset.shops,
+        totalArea: dataset.totalArea,
+        totalPower: dataset.totalPower,
+        supportingFacilities: dataset.supportingFacilities,
+        onBack: () => {},
+        onViewDetails: () => {},
+      }),
+    )
+
+    assert.equal((markup.match(/shop-hotspot--operating/g) ?? []).length, operating)
+    assert.equal((markup.match(/shop-hotspot--vacant/g) ?? []).length, vacant)
+    assert.equal((markup.match(/class="hotspot-code"/g) ?? []).length, codes)
+  }
 })

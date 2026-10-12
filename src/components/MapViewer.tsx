@@ -35,15 +35,16 @@ export function MapViewer({ floor, shops, selectedShopId, onSelectShop }: MapVie
 
   return (
     <div className="map-viewer">
-      <div className="map-viewer__legend"><span className="legend-line" /> 原始规划图 <span className="legend-hotspot" /> 交互空间 <span className="legend-help"><Move size={12} /> 拖动平移 · 滚轮缩放</span></div>
+      <div className="map-viewer__legend"><span className="legend-line" /> 原始规划图 <span className="legend-hotspot legend-hotspot--operating" /> 营业店铺 <span className="legend-hotspot legend-hotspot--vacant" /> 空店铺 <span className="legend-help"><Move size={12} /> 拖动平移 · 滚轮缩放</span></div>
       <div className={`map-viewport ${dragging ? 'is-dragging' : ''}`} ref={viewportRef} onWheel={handleWheel} onPointerDown={handlePointerDown} onPointerMove={handlePointerMove} onPointerUp={handlePointerUp} onPointerCancel={handlePointerUp}>
         <div className="map-stage" style={{ aspectRatio: floor.mapAspectRatio, transform: `translate3d(${offset.x}px, ${offset.y}px, 0) scale(${scale})` }}>
           <img src={floor.mapImage} alt={`${floor.name}商业规划图`} draggable={false} />
           <div className="map-stage__wash" />
           {shops.map((shop) => {
             const selected = selectedShopId === shop.id
-            return <button key={shop.id} className={`shop-hotspot ${selected ? 'is-selected' : ''}`} style={{ left: `${shop.hotspot.x}%`, top: `${shop.hotspot.y}%`, width: `${shop.hotspot.width}%`, height: `${shop.hotspot.height}%` }} onClick={() => onSelectShop(shop)} aria-label={`查看 ${shop.code}`}>
-              <span className="hotspot-border" /><span className="hotspot-label"><strong>{shop.code}</strong><small>{shop.categoryLabel} · {shop.area}㎡</small></span><span className="hotspot-pin" />
+            const stateClass = shop.status === '运营中' || shop.status === '营业中' ? 'shop-hotspot--operating' : 'shop-hotspot--vacant'
+            return <button key={shop.id} className={`shop-hotspot ${stateClass} ${selected ? 'is-selected' : ''}`} style={{ left: `${shop.hotspot.x}%`, top: `${shop.hotspot.y}%`, width: `${shop.hotspot.width}%`, height: `${shop.hotspot.height}%` }} onClick={() => onSelectShop(shop)} aria-label={`查看 ${shop.code} · ${shop.status}`}>
+              <span className="hotspot-code">{shop.code}</span><span className="hotspot-label"><strong>{shop.code}</strong><small>{shop.status} · {shop.categoryLabel} · {shop.area}㎡</small></span>
             </button>
           })}
         </div>
